@@ -44,6 +44,19 @@
                 <button id="loadBtn" class="btn-primary">Load Document</button>
                 <div id="loadStatus" class="status-message"></div>
             </div>
+
+            <!-- Conversation History -->
+            <div class="card conversations-card">
+                <div class="conversations-header">
+                    <h3>💬 Conversations</h3>
+                    <button id="newChatBtn" class="btn-icon" title="New chat">
+                        <i class="fas fa-plus"></i>
+                    </button>
+                </div>
+                <div class="conversations-list" id="conversationsList">
+                    <!-- List of previous chats will appear here -->
+                </div>
+            </div>
         </aside>
 
         <!-- Main chat area -->
@@ -51,7 +64,6 @@
             <div class="chat-header">
                 <div class="header-left">
                     <h2>💬 Ask a Question</h2>
-                    
                 </div>
                 <div class="header-actions">
                     <button id="clearChatBtn" class="btn-secondary" title="Clear chat">

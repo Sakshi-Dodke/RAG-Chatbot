@@ -1,3 +1,151 @@
+// ========== Conversation Management ==========
+let currentConversationId = null;
+
+// Load conversations from localStorage
+function loadConversations() {
+    const stored = localStorage.getItem('rag_conversations');
+    if (!stored) return [];
+    return JSON.parse(stored);
+}
+
+function saveConversations(conversations) {
+    localStorage.setItem('rag_conversations', JSON.stringify(conversations));
+}
+
+function getCurrentConversation() {
+    const convs = loadConversations();
+    if (!currentConversationId) return null;
+    return convs.find(c => c.id === currentConversationId);
+}
+
+function updateConversationTitle(conversation) {
+    // Use first user message as title, else "New Chat"
+    const firstUserMsg = conversation.messages.find(m => m.role === 'user');
+    conversation.title = firstUserMsg ? firstUserMsg.content.substring(0, 30) : 'New Chat';
+    if (conversation.title.length === 30) conversation.title += '…';
+    return conversation;
+}
+
+function addMessageToCurrentChat(role, content) {
+    const convs = loadConversations();
+    let conv = convs.find(c => c.id === currentConversationId);
+    if (!conv) {
+        // Create new conversation if none exists
+        conv = {
+            id: Date.now().toString(),
+            title: 'New Chat',
+            messages: []
+        };
+        convs.push(conv);
+        currentConversationId = conv.id;
+    }
+    conv.messages.push({ role, content });
+    updateConversationTitle(conv);
+    saveConversations(convs);
+    renderConversationsList();
+}
+
+function renderConversationsList() {
+    const convs = loadConversations();
+    const listDiv = document.getElementById('conversationsList');
+    listDiv.innerHTML = '';
+    convs.forEach(conv => {
+        const item = document.createElement('div');
+        item.className = `conversation-item ${conv.id === currentConversationId ? 'active' : ''}`;
+        item.dataset.id = conv.id;
+        
+        const titleSpan = document.createElement('span');
+        titleSpan.className = 'conversation-title';
+        titleSpan.textContent = conv.title;
+        titleSpan.title = conv.title;
+        
+        const deleteBtn = document.createElement('button');
+        deleteBtn.className = 'delete-conversation';
+        deleteBtn.innerHTML = '<i class="fas fa-trash-alt"></i>';
+        deleteBtn.title = 'Delete chat';
+        deleteBtn.addEventListener('click', (e) => {
+            e.stopPropagation();
+            deleteConversation(conv.id);
+        });
+        
+        item.appendChild(titleSpan);
+        item.appendChild(deleteBtn);
+        
+        item.addEventListener('click', () => switchConversation(conv.id));
+        listDiv.appendChild(item);
+    });
+}
+
+function switchConversation(id) {
+    const convs = loadConversations();
+    const conv = convs.find(c => c.id === id);
+    if (!conv) return;
+    currentConversationId = id;
+    renderConversationsList();
+    loadMessagesIntoChat(conv.messages);
+}
+
+function loadMessagesIntoChat(messages) {
+    const chatMessages = document.getElementById('chatMessages');
+    chatMessages.innerHTML = ''; // Clear existing
+    if (messages.length === 0) {
+        // Show welcome message
+        addMessageToUI("Hello! I'm your document assistant. Load a PDF or website, then ask me anything about it.", 'bot');
+    } else {
+        messages.forEach(msg => addMessageToUI(msg.content, msg.role));
+    }
+}
+
+function addMessageToUI(text, sender) {
+    const chatMessages = document.getElementById('chatMessages');
+    const messageDiv = document.createElement('div');
+    messageDiv.className = `message ${sender === 'user' ? 'user-message' : 'bot-message'}`;
+    const contentDiv = document.createElement('div');
+    contentDiv.className = 'message-content';
+    contentDiv.innerHTML = `<p>${text.replace(/\n/g, '<br>')}</p>`;
+    messageDiv.appendChild(contentDiv);
+    chatMessages.appendChild(messageDiv);
+    chatMessages.scrollTop = chatMessages.scrollHeight;
+}
+
+function deleteConversation(id) {
+    let convs = loadConversations();
+    convs = convs.filter(c => c.id !== id);
+    saveConversations(convs);
+    if (currentConversationId === id) {
+        // Switch to another conversation or create a new one
+        if (convs.length > 0) {
+            switchConversation(convs[0].id);
+        } else {
+            currentConversationId = null;
+            renderConversationsList();
+            // Clear chat area and show welcome
+            document.getElementById('chatMessages').innerHTML = '';
+            addMessageToUI("Hello! I'm your document assistant. Load a PDF or website, then ask me anything about it.", 'bot');
+        }
+    } else {
+        renderConversationsList();
+    }
+}
+
+function newConversation() {
+    // Clear current chat area
+    document.getElementById('chatMessages').innerHTML = '';
+    addMessageToUI("Hello! I'm your document assistant. Load a PDF or website, then ask me anything about it.", 'bot');
+    // Create new conversation with empty messages
+    const newId = Date.now().toString();
+    const newConv = {
+        id: newId,
+        title: 'New Chat',
+        messages: []
+    };
+    const convs = loadConversations();
+    convs.push(newConv);
+    saveConversations(convs);
+    currentConversationId = newId;
+    renderConversationsList();
+}
+
 // ========== Theme Toggle ==========
 const themeToggle = document.getElementById('themeToggle');
 const prefersDarkScheme = window.matchMedia('(prefers-color-scheme: dark)');
@@ -15,7 +163,6 @@ function setTheme(theme) {
     }
 }
 
-// Load saved theme
 const savedTheme = localStorage.getItem('theme');
 if (savedTheme === 'dark') {
     setTheme('dark');
@@ -36,8 +183,7 @@ themeToggle.addEventListener('click', () => {
     }
 });
 
-// ========== Existing code (unchanged) ==========
-// Toggle between PDF and URL inputs
+// ========== Document Upload (unchanged) ==========
 const sourceRadios = document.querySelectorAll('input[name="sourceType"]');
 const pdfDiv = document.getElementById('pdfInput');
 const urlDiv = document.getElementById('urlInput');
@@ -55,7 +201,6 @@ sourceRadios.forEach(radio => {
     });
 });
 
-// Load document
 const loadBtn = document.getElementById('loadBtn');
 
 loadBtn.addEventListener('click', async () => {
@@ -69,7 +214,6 @@ loadBtn.addEventListener('click', async () => {
             showStatus('Please select a PDF file.', 'error');
             return;
         }
-        // Convert file to base64
         const reader = new FileReader();
         reader.readAsDataURL(file);
         reader.onload = async () => {
@@ -90,10 +234,8 @@ loadBtn.addEventListener('click', async () => {
 
 async function sendLoad(payload) {
     showStatus('Loading document...', 'info');
-    
     const controller = new AbortController();
     const timeoutId = setTimeout(() => controller.abort(), 60000);
-    
     try {
         const response = await fetch('/load', {
             method: 'POST',
@@ -101,13 +243,10 @@ async function sendLoad(payload) {
             body: JSON.stringify(payload),
             signal: controller.signal
         });
-        
         clearTimeout(timeoutId);
-        
         const data = await response.json();
         if (response.ok && data.status === 'success') {
             showStatus(`✅ Document loaded! Created ${data.num_chunks} chunks.`, 'success');
-            // Removed the bot message from the chat
         } else {
             showStatus(`❌ Error: ${data.error || 'Unknown error'}`, 'error');
         }
@@ -132,25 +271,19 @@ function showStatus(message, type) {
     }
 }
 
-// Ask question
+// ========== Ask question (modified to store messages) ==========
 const askBtn = document.getElementById('askBtn');
 const questionInput = document.getElementById('question');
 const chatMessages = document.getElementById('chatMessages');
 
-// Add a message to the chat
-function addMessage(text, sender) {
-    const messageDiv = document.createElement('div');
-    messageDiv.className = `message ${sender === 'user' ? 'user-message' : 'bot-message'}`;
-    const contentDiv = document.createElement('div');
-    contentDiv.className = 'message-content';
-    contentDiv.innerHTML = `<p>${text.replace(/\n/g, '<br>')}</p>`;
-    messageDiv.appendChild(contentDiv);
-    chatMessages.appendChild(messageDiv);
-    // Scroll to bottom
-    chatMessages.scrollTop = chatMessages.scrollHeight;
+function addMessageToChat(text, sender) {
+    addMessageToUI(text, sender);
+    // Store in current conversation
+    if (sender === 'user' || sender === 'bot') {
+        addMessageToCurrentChat(sender, text);
+    }
 }
 
-// Add a loading indicator
 function addLoadingMessage() {
     const loadingDiv = document.createElement('div');
     loadingDiv.className = 'message bot-message';
@@ -171,20 +304,14 @@ function removeLoadingMessage() {
 askBtn.addEventListener('click', async () => {
     const question = questionInput.value.trim();
     if (!question) {
-        addMessage('Please enter a question.', 'bot');
+        addMessageToChat('Please enter a question.', 'bot');
         return;
     }
-    
-    // Add user message to chat
-    addMessage(question, 'user');
+    addMessageToChat(question, 'user');
     questionInput.value = '';
-    
-    // Add loading indicator
     addLoadingMessage();
-    
     const controller = new AbortController();
     const timeoutId = setTimeout(() => controller.abort(), 60000);
-    
     try {
         const response = await fetch('/ask', {
             method: 'POST',
@@ -193,27 +320,24 @@ askBtn.addEventListener('click', async () => {
             signal: controller.signal
         });
         clearTimeout(timeoutId);
-        
         const data = await response.json();
         removeLoadingMessage();
-        
         if (response.ok) {
-            addMessage(data.answer, 'bot');
+            addMessageToChat(data.answer, 'bot');
         } else {
-            addMessage(`Error: ${data.error || 'Unknown error'}`, 'bot');
+            addMessageToChat(`Error: ${data.error || 'Unknown error'}`, 'bot');
         }
     } catch (err) {
         clearTimeout(timeoutId);
         removeLoadingMessage();
         if (err.name === 'AbortError') {
-            addMessage('Request timed out. Please try again.', 'bot');
+            addMessageToChat('Request timed out. Please try again.', 'bot');
         } else {
-            addMessage(`Network error: ${err.message}`, 'bot');
+            addMessageToChat(`Network error: ${err.message}`, 'bot');
         }
     }
 });
 
-// Allow Enter to send (Shift+Enter for newline)
 questionInput.addEventListener('keydown', (e) => {
     if (e.key === 'Enter' && !e.shiftKey) {
         e.preventDefault();
@@ -221,13 +345,40 @@ questionInput.addEventListener('keydown', (e) => {
     }
 });
 
-// ========== Clear Chat Button ==========
+// ========== Clear Chat (modified) ==========
 const clearChatBtn = document.getElementById('clearChatBtn');
 
 function clearChat() {
-    // Keep only the initial bot welcome message
+    // Clear the current conversation's messages
+    const convs = loadConversations();
+    const conv = convs.find(c => c.id === currentConversationId);
+    if (conv) {
+        conv.messages = [];
+        updateConversationTitle(conv);
+        saveConversations(convs);
+    }
+    // Clear UI
     chatMessages.innerHTML = '';
-    addMessage("Hello! I'm your document assistant. Load a PDF or website, then ask me anything about it.", 'bot');
+    addMessageToChat("Hello! I'm your document assistant. Load a PDF or website, then ask me anything about it.", 'bot');
+    renderConversationsList();
 }
-
 clearChatBtn.addEventListener('click', clearChat);
+
+// ========== New Chat Button ==========
+const newChatBtn = document.getElementById('newChatBtn');
+newChatBtn.addEventListener('click', () => {
+    newConversation();
+});
+
+// ========== Initialize ==========
+// Load or create initial conversation
+let convs = loadConversations();
+if (convs.length === 0) {
+    newConversation();
+} else {
+    // Select the most recent conversation (the last one)
+    const last = convs[convs.length - 1];
+    currentConversationId = last.id;
+    renderConversationsList();
+    loadMessagesIntoChat(last.messages);
+}
