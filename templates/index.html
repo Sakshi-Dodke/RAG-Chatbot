@@ -1,0 +1,84 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>RAG Chatbot</title>
+    <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Crect width='100' height='100' fill='%233b82f6'/%3E%3Ccircle cx='30' cy='40' r='8' fill='white'/%3E%3Ccircle cx='70' cy='40' r='8' fill='white'/%3E%3Crect x='40' y='60' width='20' height='30' fill='white'/%3E%3C/svg%3E">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:opsz,wght@14..32,300;14..32,400;14..32,500;14..32,600;14..32,700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+    <link rel="stylesheet" href="/static/style.css">
+</head>
+<body>
+    <div class="app-container">
+        <!-- Sidebar -->
+        <aside class="sidebar">
+            <div class="logo">
+                <span class="logo-icon">🤖</span>
+                <h2>RAG Chatbot</h2>
+            </div>
+
+            <!-- Document Upload Section -->
+            <div class="card upload-card">
+                <h3>📁 Load Document</h3>
+                <div class="source-toggle">
+                    <label class="radio-label">
+                        <input type="radio" name="sourceType" value="pdf" checked> PDF File
+                    </label>
+                    <label class="radio-label">
+                        <input type="radio" name="sourceType" value="url"> Website URL
+                    </label>
+                </div>
+
+                <div id="pdfInput" class="upload-area">
+                    <label for="pdfFile" class="file-label">Choose PDF file</label>
+                    <input type="file" id="pdfFile" accept=".pdf">
+                </div>
+
+                <div id="urlInput" class="upload-area" style="display: none;">
+                    <input type="text" id="url" placeholder="https://example.com">
+                </div>
+
+                <button id="loadBtn" class="btn-primary">Load Document</button>
+                <div id="loadStatus" class="status-message"></div>
+            </div>
+        </aside>
+
+        <!-- Main chat area -->
+        <main class="chat-area">
+            <div class="chat-header">
+                <div class="header-left">
+                    <h2>💬 Ask a Question</h2>
+                    
+                </div>
+                <div class="header-actions">
+                    <button id="clearChatBtn" class="btn-secondary" title="Clear chat">
+                        <i class="fas fa-trash-alt"></i> Clear
+                    </button>
+                    <button id="themeToggle" class="btn-icon" title="Toggle dark mode">
+                        <i class="fas fa-moon"></i>
+                    </button>
+                </div>
+            </div>
+
+            <div class="chat-messages" id="chatMessages">
+                <!-- Messages will appear here -->
+                <div class="message bot-message">
+                    <div class="message-content">
+                        <p>Hello! I'm your document assistant. Load a PDF or website, then ask me anything about it.</p>
+                    </div>
+                </div>
+            </div>
+
+            <div class="chat-input-area">
+                <textarea id="question" rows="3" placeholder="Type your question here..."></textarea>
+                <button id="askBtn" class="btn-primary">Ask</button>
+            </div>
+        </main>
+    </div>
+
+    <script src="/static/script.js"></script>
+</body>
+</html>
