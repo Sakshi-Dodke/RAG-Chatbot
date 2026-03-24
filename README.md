@@ -37,7 +37,7 @@ A Retrieval-Augmented Generation (RAG) chatbot that answers questions based on u
    ```bash
    git clone https://github.com/Sakshi-Dodke/RAG-Chatbot.git
    cd RAG-Chatbot
-2. Create a virtual environment (optional but recommended)
+2. Create a virtual environment
    python -m venv venv
    venv\Scripts\activate         # Windows
 3. Install dependencies
