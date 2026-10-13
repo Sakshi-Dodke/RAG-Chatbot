@@ -62,13 +62,6 @@ python -m venv venv
 venv\Scripts\activate.bat
 ```
 
-**macOS / Linux:**
-
-```bash
-python3 -m venv venv
-source venv/bin/activate
-```
-
 ### 3. Install Dependencies
 
 If `requirements.txt` exists, run:
@@ -90,8 +83,6 @@ Create a `.env` file in the project's root directory and add your API key:
 ```bash
 OPENAI_API_KEY=your_openai_api_key_here
 ```
-
-**Important:** Never commit your `.env` file or expose your API key publicly. Make sure `.env` is included in `.gitignore`.
 
 ### 5. Run the Application
 
@@ -115,28 +106,6 @@ http://127.0.0.1:5000
 4. Ask questions related to the uploaded document or website.
 5. Review the AI-generated answers.
 6. Switch between dark and light themes or clear the chat history as needed.
-
-## 🔐 Security Notes
-
-- Store your OpenAI API key in the `.env` file.
-- Never upload API keys or other secrets to GitHub.
-- Add `.env`, virtual environments, and temporary files to `.gitignore`.
-- Avoid exposing sensitive documents or confidential information.
-
-## 📌 Future Improvements
-
-- Support multiple PDF documents and website sources.
-- Add conversation memory for follow-up questions.
-- Improve retrieval accuracy with configurable chunking and ranking.
-- Add source citations to generated answers.
-- Support additional language models and embedding models.
-
-## 👩‍💻 Author
-
-**Sakshi Dodke**
-
-- GitHub: [Sakshi-Dodke](https://github.com/Sakshi-Dodke)
-- Project Repository: [RAG-Chatbot](https://github.com/Sakshi-Dodke/RAG-Chatbot)
 
 ---
 
